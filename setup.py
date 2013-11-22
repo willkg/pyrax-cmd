@@ -3,7 +3,7 @@
 
 import os
 import sys
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 if sys.argv[-1] == 'publish':
@@ -17,7 +17,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='pyrax-cmd',
-    version=get_version(),
+    version='0.1.0',
     description='Eats bugs (WILLCAGE FURY EDITION)',
     long_description=readme + '\n\n' + history,
     author='Will Kahn-Greene',
@@ -37,7 +37,6 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
     ],
 )

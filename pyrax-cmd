@@ -1,0 +1,140 @@
+#!/usr/bin/env python
+
+__version__ = '0.1.0'
+
+import argparse
+import os
+import sys
+import textwrap
+
+try:
+    import pyrax
+    from pyrax.exceptions import PyraxException
+
+    cf = pyrax.cloudfiles
+except ImportError as ioe:
+    print ioe
+    print 'Please install pyrax'
+    sys.exit(1)
+
+
+def upload_folder(folder, container):
+    return cf.upload_folder(folder, container=container)
+
+
+def upload_files(filenames, container):
+    results = defaultdict(dict)
+    for filename in filenames:
+        results[filename].update({'status': 'processing'})
+
+        print 'Uploading {}'.format(filename)
+        try:
+            checksum = pyrax.utils.get_checksum(filename)
+            name = os.path.basename(filename)
+            obj = container.upload_file(filename, etag=checksum)
+
+            results[filename].update({
+                'status': 'finished',
+                'obj': obj,
+            })
+            print 'Finished {}'.format(filename)
+
+        except PyraxException as e:
+            # FIXME - error handling here is meh.
+            print 'Help! PyraxException {} while trying to upload {}. skipping to next file'.format(e, filename)
+            results[filename].update({
+                'status': 'problem',
+                'exception': e,
+            })
+
+    return results
+
+
+def setup_pyrax_environment(credentials='~/.rackspace'):
+    pyrax.set_setting("identity_type", "rackspace")
+    creds_file = os.path.expanduser(credentials)
+    pyrax.set_credential_file(creds_file)
+    return pyrax.cloudfiles
+
+
+def cmd_ls(cf, args):
+    container = cf.get_container(args.container)
+    for obj in container.get_objects():
+        print obj.name
+
+
+def cmd_rename(cf, args):
+    container = cf.get_container(args.container)
+    cf.move_object(container, args.source, container, args.dest)
+
+
+def cmd_status(cf, args):
+    container = cf.get_container(args.container)
+    print "cdn_enabled", container.cdn_enabled
+    print "cdn_ttl", container.cdn_ttl
+    print "cdn_log_retention", container.cdn_log_retention
+    print "cdn_uri", container.cdn_uri
+    print "cdn_ssl_uri", container.cdn_ssl_uri
+    print "cdn_streaming_uri", container.cdn_streaming_uri
+    print "cdn_ios_uri", container.cdn_ios_uri
+
+
+def cmd_upload(cf, args):
+    container = cf.get_container(args.container)
+    for arg in args.files:
+        if os.path.isdir(arg):
+            results = upload_folder(arg, container)
+        else:
+            results = upload_files(arg, container)
+
+        # FIXME - print results is kind of meh
+        print results
+
+
+def get_commands():
+    cmds = {}
+    for name, thing in globals().items():
+        if name.startswith('cmd_'):
+            cmds[name[4:]] = thing
+
+    return cmds
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=textwrap.dedent("""
+        pyrax-cmd - Pyrax for the command line
+        version {0}
+
+        Let's you manipulate your Rackspace cloud files container from the happiness
+        of your command line.
+
+        Issues: https://github.com/willkg/pyrax-cmd/issues
+        """.format(__version__)))
+    parser.add_argument('--credentials', default='~/.rackspace')
+
+    subparsers = parser.add_subparsers(help='sub-command help', dest='subparser_cmd')
+
+    parser_ls = subparsers.add_parser('ls', help='list container contents')
+    parser_ls.add_argument('container')
+
+    parser_upload = subparsers.add_parser('upload', help='upload files/folder')
+    parser_upload.add_argument('container')
+    parser_upload.add_argument('files', metavar='FILES', nargs='*',
+        help='files or folders to upload')
+
+    parser_status = subparsers.add_parser('status', help='shows status of container')
+    parser_status.add_argument('container')
+
+    parser_rename = subparsers.add_parser('rename', help='renames object in a container')
+    parser_rename.add_argument('container')
+    parser_rename.add_argument('source')
+    parser_rename.add_argument('dest')
+
+    args = parser.parse_args()
+    cf = setup_pyrax_environment(args.credentials)
+
+    cmds = get_commands()
+    sys.exit(cmds[args.subparser_cmd](cf, args))
+
