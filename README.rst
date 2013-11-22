@@ -40,3 +40,13 @@ Run::
     $ git clone https://github.com/willkg/pyrax-cmd
     # Create a virtualenvironment
     $ pip install -e .
+
+
+Use
+===
+
+Run::
+
+    $ pyrax-cmd --help
+
+This will show you help for pyrax-cmd.
