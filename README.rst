@@ -2,13 +2,18 @@
 pyrax-cmd
 =========
 
-CLI for pyrax.
+Rackspace `Pyrax <https://github.com/rackspace/pyrax>`_  cloud files
+command line client.
 
+Features:
 
-Features
---------
+* ls - list object names in a container
+* status - show the container status
+* rename - rename an object in a container
+* upload - upload files/folders to your cloudfiles container
 
-* TODO
+It's pretty basic, but it made my life easier.
+
 
 :Code:         https://github.com/willkg/pyrax-cmd/
 :Issues:       https://github.com/willkg/pyrax-cmd/issues
