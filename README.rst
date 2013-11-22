@@ -1,8 +1,9 @@
-===============================
+=========
+pyrax-cmd
+=========
 
-===============================
+CLI for pyrax.
 
-Eats bugs (WILLCAGE FURY EDITION)
 
 Features
 --------
@@ -10,7 +11,7 @@ Features
 * TODO
 
 :Code:         https://github.com/willkg/pyrax-cmd/
-:Issues:         https://github.com/willkg/pyrax-cmd/issues
+:Issues:       https://github.com/willkg/pyrax-cmd/issues
 :License:      BSD 3-clause; See LICENSE
 :Contributors: See AUTHORS.rst
 
